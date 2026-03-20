@@ -1,0 +1,18 @@
+# LaTeX の補助ファイル
+aux/
+
+# 何らかの理由で out/ 側に補助ファイルが出ても追跡しない
+out/*.aux
+out/*.bbl
+out/*.bcf
+out/*.blg
+out/*.fdb_latexmk
+out/*.fls
+out/*.log
+out/*.out
+out/*.run.xml
+out/*.toc
+out/*.xdv
+
+# SyncTeX は PDF と同じ out/ に置くが、通常は成果物として追跡しない
+out/*.synctex.gz

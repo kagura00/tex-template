@@ -1,0 +1,49 @@
+{
+  // Dev Container として VS Code に表示される名前
+  "name": "tex-template-devcontainer",
+  // VS Code が開くときにこの Dockerfile から自動でコンテナを組み立てる
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  // latexmk などの長時間プロセスの後始末を安定させる
+  "init": true,
+  // コンテナ内の通常作業ユーザー
+  "remoteUser": "texlive",
+  // ホスト側 UID/GID に合わせて権限トラブルを減らす
+  "updateRemoteUserUID": true,
+  // TeX Live full を含むので、最低限の目安を出しておく
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb",
+    "storage": "20gb"
+  },
+  // コンテナ側の VS Code 拡張本体と拡張状態を名前付き volume に逃がして、
+  // Rebuild Container でも入れ直しや状態リセットを減らす。
+  "mounts": [
+    "source=tex-template-vscode-server-extensions,target=/home/texlive/.vscode-server/extensions,type=volume",
+    "source=tex-template-vscode-server-data,target=/home/texlive/.vscode-server/data,type=volume"
+  ],
+  // 初回作成時の自動準備が終わるまで接続を待つ
+  "waitFor": "postCreateCommand",
+  // 初回作成時に aux/・out/ 作成と LuaLaTeX の初期キャッシュ生成を行う
+  "postCreateCommand": "bash .devcontainer/postCreate.sh",
+  // 再接続や再起動でも aux/・out/ の権限を直して保存時ビルドを維持する
+  "postStartCommand": "bash .devcontainer/prepareWorkspace.sh",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // textlint はコンテナ内にグローバルインストールしているため、
+        // Linux 側の node_modules をコンテナ接続時だけ参照させる。
+        "textlint.nodePath": "/usr/local/lib/node_modules"
+      },
+      // このテンプレートで前提とする拡張
+      "extensions": [
+        "james-yu.latex-workshop",
+        "3w36zj6.textlint",
+        "hediet.vscode-drawio",
+        "usernamehw.errorlens"
+      ]
+    }
+  }
+}

@@ -1,0 +1,296 @@
+{
+  // 保存時だけ自動ビルドする
+  "latex-workshop.latex.autoBuild.run": "onSave",
+  // 連続保存時の過剰ビルドを抑える
+  "latex-workshop.latex.autoBuild.interval": 300,
+  // 一時的な失敗時は clean 後に一度だけ再試行する
+  "latex-workshop.latex.autoBuild.cleanAndRetry.enabled": true,
+  // ビルド後に補助ファイルを消さず、増分ビルドを速くする
+  "latex-workshop.latex.autoClean.run": "never",
+  // PDF は out/、補助ファイルは aux/ に分ける
+  "latex-workshop.latex.outDir": "%DIR%/out",
+  "latex-workshop.latex.auxDir": "%DIR%/aux",
+  // 手動で選んだレシピを次回以降の自動ビルドにも使う
+  "latex-workshop.latex.recipe.default": "lastUsed",
+  // 分割原稿では % !TeX root = ... を使えるようにしておく
+  "latex-workshop.latex.build.enableMagicComments": true,
+  // subfile 構成を前提にしないシンプルな root 判定
+  "latex-workshop.latex.rootFile.useSubFile": false,
+  // 利用可能なビルドレシピ
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "latexmk (LuaLaTeX)",
+      "tools": [
+        "texfot-latexmk-lualatex"
+      ]
+    },
+    {
+      "name": "latexmk (LuaLaTeX + shell-escape)",
+      "tools": [
+        "texfot-latexmk-lualatex-shell-escape"
+      ]
+    },
+    {
+      "name": "latexmk (upLaTeX + dvipdfmx)",
+      "tools": [
+        "texfot-latexmk-uplatex"
+      ]
+    },
+    {
+      "name": "latexmk (pLaTeX + dvipdfmx)",
+      "tools": [
+        "texfot-latexmk-platex"
+      ]
+    }
+  ],
+  // 各レシピで使う実コマンド
+  "latex-workshop.latex.tools": [
+    {
+      "name": "texfot-latexmk-lualatex",
+      "command": "texfot",
+      "args": [
+        "latexmk",
+        "-lualatex",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-halt-on-error",
+        "-outdir=%OUTDIR%",
+        "-auxdir=%AUXDIR%",
+        "%DOC%"
+      ]
+    },
+    {
+      "name": "texfot-latexmk-lualatex-shell-escape",
+      "command": "texfot",
+      "args": [
+        "latexmk",
+        "-lualatex",
+        "-shell-escape",
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-halt-on-error",
+        "-outdir=%OUTDIR%",
+        "-auxdir=%AUXDIR%",
+        "%DOC%"
+      ]
+    },
+    {
+      "name": "texfot-latexmk-uplatex",
+      "command": "texfot",
+      "args": [
+        "latexmk",
+        "-pdfdvi",
+        "-latex=uplatex %O -synctex=1 -interaction=nonstopmode -file-line-error -halt-on-error %S",
+        "-outdir=%OUTDIR%",
+        "-auxdir=%AUXDIR%",
+        "%DOC%"
+      ]
+    },
+    {
+      "name": "texfot-latexmk-platex",
+      "command": "texfot",
+      "args": [
+        "latexmk",
+        "-pdfdvi",
+        "-latex=platex %O -synctex=1 -interaction=nonstopmode -file-line-error -halt-on-error %S",
+        "-outdir=%OUTDIR%",
+        "-auxdir=%AUXDIR%",
+        "%DOC%"
+      ]
+    }
+  ],
+  // 手動 clean で削除する補助ファイル
+  "latex-workshop.latex.clean.fileTypes": [
+    "*.aux",
+    "*.bbl",
+    "*.bcf",
+    "*.blg",
+    "*.dvi",
+    "*.fdb_latexmk",
+    "*.fls",
+    "*.glg",
+    "*.glo",
+    "*.gls",
+    "*.idx",
+    "*.ilg",
+    "*.ind",
+    "*.lof",
+    "*.lot",
+    "*.nav",
+    "*.out",
+    "*.run.xml",
+    "*.snm",
+    "*.synctex.gz",
+    "*.toc",
+    "*.xdv"
+  ],
+  "latex-workshop.latex.clean.subfolder.enabled": true,
+  // PDF は VS Code のタブで開く
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.view.pdf.zoom": "page-width",
+  // リロード演出をなくして更新を分かりやすくする
+  "latex-workshop.view.pdf.reload.transition": "none",
+  // PDF 上のダブルクリックで逆方向 SyncTeX
+  "latex-workshop.view.pdf.internal.synctex.keybinding": "double-click",
+  // ビルド後にカーソル位置へ forward SyncTeX
+  "latex-workshop.synctex.afterBuild.enabled": true,
+  // .tex 保存時の整形
+  "latex-workshop.formatting.latex": "latexindent",
+  // chktex による lint
+  "latex-workshop.linting.chktex.enabled": true,
+  // Windows 側の ChkTeX が UTF-8 の日本語を warning 19 と誤判定することがあるため抑制する
+  "latex-workshop.linting.chktex.exec.args": [
+    "-wall",
+    "-n19",
+    "-n22",
+    "-n30",
+    "-e16",
+    "-q"
+  ],
+  "latex-workshop.linting.run": "onSave",
+  // textlint による日本語校正
+  "textlint.run": "onSave",
+  "textlint.autoFixOnSave": false,
+  "textlint.languages": [
+    "latex"
+  ],
+  // Error Lens で warning を見つけやすくする
+  "errorLens.enabledDiagnosticLevels": [
+    "error",
+    "warning"
+  ],
+  "errorLens.excludePatterns": [
+    "**/aux/**",
+    "**/out/**"
+  ],
+  "errorLens.followCursor": "closestProblem",
+  "errorLens.messageMaxChars": 160,
+  "errorLens.onSave": true,
+  // 補完まわり
+  "latex-workshop.intellisense.package.enabled": true,
+  "latex-workshop.intellisense.citation.backend": "bibtex",
+  // cls / sty なども LaTeX として開いて編集しやすくする
+  "files.associations": {
+    ".textlintignore": "ignore",
+    "*.bib": "bibtex",
+    "*.cls": "latex",
+    "*.sty": "latex",
+    "*.bbx": "latex",
+    "*.cbx": "latex"
+  },
+  // 補助ファイルと PDF 出力は検索対象から外してノイズを減らす
+  "search.exclude": {
+    "**/aux": true,
+    "**/out": true
+  },
+  // LaTeX エディタの操作感
+  "[latex]": {
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "on",
+    "editor.snippetSuggestions": "top",
+    "editor.tabCompletion": "onlySnippets"
+  },
+  "cSpell.words": [
+    "aboveskip",
+    "Addison",
+    "arara",
+    "backgroundcolor",
+    "belowskip",
+    "biber",
+    "bibtex",
+    "booktabs",
+    "Braams",
+    "breakatwhitespace",
+    "breaklines",
+    "btab",
+    "Carlisle",
+    "childtex",
+    "chktex",
+    "cleveref",
+    "cref",
+    "dearu",
+    "defi",
+    "desumasu",
+    "documentclass",
+    "dpkg",
+    "dvipdf",
+    "dvipdfmx",
+    "ENOENT",
+    "enumitem",
+    "eqref",
+    "errorlens",
+    "esac",
+    "filemode",
+    "framerule",
+    "framexleftmargin",
+    "fullflexible",
+    "Goossens",
+    "hediet",
+    "htbp",
+    "includegraphics",
+    "jpdoc",
+    "keepspaces",
+    "latexcompanion",
+    "latexindent",
+    "latexmk",
+    "latexmkrc",
+    "lineskip",
+    "lstlisting",
+    "ltjsarticle",
+    "lualatex",
+    "luaotfload",
+    "minipage",
+    "minted",
+    "Mittelbach",
+    "multicol",
+    "multicols",
+    "nameinlink",
+    "noabbrev",
+    "noninteractive",
+    "nonstopmode",
+    "NOPASSWD",
+    "numbersep",
+    "numberstyle",
+    "parsep",
+    "pdfinfo",
+    "pdfpages",
+    "pdftotext",
+    "placeins",
+    "pmat",
+    "pmatrix",
+    "poppler",
+    "Pygments",
+    "ripgrep",
+    "Rowley",
+    "rulecolor",
+    "showstringspaces",
+    "siunitx",
+    "ssec",
+    "sssec",
+    "stepnumber",
+    "subcaption",
+    "subfig",
+    "subfigure",
+    "subsubsection",
+    "synctex",
+    "tabsize",
+    "tbrl",
+    "texfot",
+    "texlive",
+    "textlint",
+    "textlintignore",
+    "textlintrc",
+    "texttt",
+    "thebibliography",
+    "toprule",
+    "topsep",
+    "upbibtex",
+    "upmendex",
+    "usepackage",
+    "usernamehw",
+    "xindy",
+    "xleftmargin"
+  ]
+}

@@ -1,0 +1,231 @@
+% このサンプル文書は ltjsarticle を使うため、既定では LuaLaTeX 前提。
+% upLaTeX / pLaTeX に切り替える場合は documentclass も合わせて変更する。
+\documentclass[12pt,a4paper,titlepage]{ltjsarticle}
+
+% 数式と定理
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{bm}
+\usepackage{mathtools}
+\usepackage{siunitx}
+
+% 図表と配置
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage[section]{placeins}
+
+% 本文補助
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{xurl}
+
+% コード掲載
+\usepackage{listings}
+
+% リンクとしおり
+\usepackage{hyperref}
+\usepackage{bookmark}
+% \usepackage[noabbrev,nameinlink]{cleveref} % \cref を使いたい場合は hyperref の後で読む
+
+% 追加しやすいレイアウト系
+% \usepackage[margin=25mm]{geometry} % 余白を調整したい場合
+% \usepackage{subcaption}            % 図を横に並べたい場合
+
+% 追加しやすいコード系
+% \usepackage{minted}                % Pygments でコードを強調表示したい場合
+
+% 図ファイルとリンクの基本設定
+\graphicspath{{images/}}
+\hypersetup{
+    unicode,
+    bookmarksnumbered = true,
+    hidelinks,
+    final
+}
+
+% 箇条書きと単位の基本設定
+\setlist{topsep=0.5em,itemsep=0.25em,parsep=0pt}
+\sisetup{
+    mode = match,
+    propagate-math-font = true,
+    reset-math-version = false,
+    reset-text-family = false,
+    reset-text-series = false,
+    reset-text-shape = false,
+    text-family-to-math = true,
+    text-series-to-math = true
+}
+% 図表見出しの表示名を変えたい場合は、次を有効にして書き換える。
+% \renewcommand{\figurename}{Fig.}
+% \renewcommand{\tablename}{Table}
+
+% 定理環境は、よく使うものを既定で定義しておく。
+% 第 2 引数を書き換えると見出し名を変更できる。
+% [theorem] を外すと、他の環境と別番号にできる。
+% proof 環境末尾の四角は QED 記号。不要なら {}、黒四角にしたいなら \blacksquare に変える。
+% \renewcommand{\qedsymbol}{$\blacksquare$}
+\theoremstyle{plain}
+\newtheorem{theorem}{定理}[section]
+\newtheorem{lemma}[theorem]{補題}
+\newtheorem{proposition}[theorem]{命題}
+\newtheorem{corollary}[theorem]{系}
+% \newtheorem{claim}[theorem]{主張}
+% \newtheorem{conjecture}[theorem]{予想}
+% \newtheorem{assumption}[theorem]{仮定}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{定義}
+\newtheorem{example}[theorem]{例}
+% \newtheorem{problem}[theorem]{問題}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{注意}
+% \newtheorem{notation}[theorem]{記法}
+
+% サンプルコードは、行番号と折り返しを優先した控えめな見た目にする。
+\lstset{
+    basicstyle={\small\ttfamily},
+    numbers=left,
+    numberstyle={\tiny},
+    stepnumber=1,
+    numbersep=1em,
+    tabsize=4,
+    keepspaces=true,
+    showstringspaces=false,
+    backgroundcolor={\color[gray]{0.96}},
+    frame=single,
+    framerule=0pt,
+    rulecolor={\color[gray]{0.80}},
+    breaklines=true,
+    breakatwhitespace=false,
+    columns=fullflexible,
+    xleftmargin=2em,
+    framexleftmargin=1.5em,
+    aboveskip=0.8\baselineskip,
+    belowskip=0.6\baselineskip,
+}
+
+\title{文書タイトル}
+\author{氏名}
+\date{\today}
+
+\begin{document}
+% Word 等で作成した表紙 PDF を先頭に入れる場合は、次のように書く。
+% 表紙をこれで置き換えるなら \maketitle はコメントアウトする。
+% \includepdf[pages=1]{images/titlepage.pdf}
+\maketitle
+
+\begin{abstract}
+    \begin{multicols}{2}
+        このテンプレートでは，要旨だけを 2 段組みにする例も最初から入れています．
+        導入や目的のように短い説明を並べたいときは，この形をそのまま流用できます．
+
+        2 段組みを終えたい位置では，source 上で \verb|\end{multicols}| を置きます．
+        ここでは，その直後に 1 段組みへ戻した例も続けて示します．
+    \end{multicols}
+    % 2 段組みをやめたい位置で \end{multicols} を置く。
+    % 以後は abstract 環境の中でも 1 段組みに戻る。
+    この段落は \verb|\end{multicols}| の後に書いているため，abstract 環境の中でも 1 段組みです．
+\end{abstract}
+
+\clearpage
+\tableofcontents
+\thispagestyle{empty}
+\clearpage
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\section{はじめに}
+ここから本文を書き始めます．
+図~\ref{fig:sample-drawio}，表~\ref{tab:sample-result}，定理~\ref{thm:supporting-line}，
+リスト~\ref{lst:sample-python} のように，相互参照しながら文書を組み立てられます．
+
+\section{数式と箇条書きの例}
+インライン数式 \(f(x)=x^2\) や，単位付きの値 \(\SI{9.81}{\metre\per\second\squared}\) をそのまま書けます．
+
+\begin{align}
+    y & = ax + b,    \\
+    z & = x^2 + y^2.
+\end{align}
+
+また，スニペットを用意しているので，下記のように入力後タブキーを押すことでよく使う定型コードを呼び出せます．
+\begin{itemize}
+    \item \texttt{sec} や \texttt{ssec} で見出しを追加できる
+    \item \texttt{eq} や \texttt{ali} で数式環境を展開できる
+    \item \texttt{fig} や \texttt{btab} で図表を挿入できる
+    \item \texttt{cite} や \texttt{eqr} で参照を追加できる
+\end{itemize}
+
+\section{図表の例}
+図表を入力順どおりに確認したいときは \texttt{[H]} 指定を使います．
+このテンプレートでは \texttt{float} パッケージを既定で読み込んでいるため，そのまま使えます．
+一方で，ページ上部へ寄せたいときは \texttt{[t]}，下部へ寄せたいときは \texttt{[b]}，
+配置候補を LaTeX にある程度任せたいときは \texttt{[htbp]} を使います．
+
+\subsection{図の例}
+\texttt{images/sample.drawio.png} を同梱しているので，
+図の挿入例や Draw.io 拡張の動作確認にそのまま使えます．
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\linewidth]{sample.drawio.png}
+    \caption{同梱している Draw.io 図のサンプル}\label{fig:sample-drawio}
+\end{figure}
+
+\subsection{表の例}
+表も図と同様に配置指定を切り替えられます．
+まずは source の順に出力を確認しやすいよう，このサンプルでは \texttt{[H]} を使っています．
+
+\begin{table}[H]
+    \centering
+    \caption{サンプルの測定結果}\label{tab:sample-result}
+    \begin{tabular}{lcc}
+        \toprule
+        条件 & 回数 & 値                       \\
+        \midrule
+        A  & 3  & \SI{12.5}{\milli\metre} \\
+        B  & 5  & \SI{18.0}{\milli\metre} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{定理環境の例}
+\begin{definition}
+    区間 \(I\) 上の関数 \(f\) が，任意の \(x,y\in I\) と \(0 \le \lambda \le 1\) に対して次を満たすとします．
+    \[
+        f(\lambda x + (1-\lambda)y) \le \lambda f(x) + (1-\lambda)f(y)
+    \]
+    このとき，\(f\) は凸であるといいます．
+\end{definition}
+
+\begin{theorem}\label{thm:supporting-line}
+    微分可能な凸関数 \(f\) に対して，任意の \(x,y\in I\) で次が成り立ちます．
+    \[
+        f(y) \ge f(x) + f'(x)(y-x)
+    \]
+\end{theorem}
+
+\begin{proof}
+    凸性の定義を \(y=x+h\) に適用し，\(h \to 0\) の極限を考えると従います．
+\end{proof}
+
+\section{コード掲載の例}
+標準では \texttt{listings} を使ったコード掲載がすぐ使えるようにしてあります．
+色分けを強くしたい場合は，コメントにある \texttt{minted} を有効にし，
+\texttt{shell-escape} 付きレシピへ切り替えてください．
+
+\begin{lstlisting}[language=Python,caption={Python の簡単な例},label={lst:sample-python}]
+def square(x):
+    return x * x
+\end{lstlisting}
+
+\section{文献参照の例}
+このテンプレートでは，参考文献を \texttt{references.bib} で管理する前提にしています．
+たとえば~\cite{latexcompanion} のように書けば，BibTeX で文献一覧を自動生成できます．
+
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\end{document}

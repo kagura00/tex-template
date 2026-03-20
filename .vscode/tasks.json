@@ -1,0 +1,60 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // 現在ファイルの % !TeX root や近い main.tex を見て、LuaLaTeX で手動ビルドする
+      "label": "LaTeX: Build (LuaLaTeX)",
+      "type": "shell",
+      "command": "bash .vscode/latex-task.sh lualatex \"${file}\" \"${workspaceFolder}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      // minted など shell-escape が必要なパッケージを使うときの LuaLaTeX ビルド。
+      "label": "LaTeX: Build (LuaLaTeX + shell-escape)",
+      "type": "shell",
+      "command": "bash .vscode/latex-task.sh lualatex-shell-escape \"${file}\" \"${workspaceFolder}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      // 現在ファイルの % !TeX root や近い main.tex を見て、upLaTeX + dvipdfmx で手動ビルドする
+      "label": "LaTeX: Build (upLaTeX + dvipdfmx)",
+      "type": "shell",
+      "command": "bash .vscode/latex-task.sh uplatex \"${file}\" \"${workspaceFolder}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      // 現在ファイルの % !TeX root や近い main.tex を見て、pLaTeX + dvipdfmx で手動ビルドする
+      "label": "LaTeX: Build (pLaTeX + dvipdfmx)",
+      "type": "shell",
+      "command": "bash .vscode/latex-task.sh platex \"${file}\" \"${workspaceFolder}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      // 現在ファイルの root と同じ aux/ を手動で空に戻したいとき用。
+      // PDF と synctex.gz は残したまま、補助ファイルだけを片付けたいときに使う。
+      "label": "LaTeX: Clean",
+      "type": "shell",
+      "command": "bash .vscode/latex-task.sh clean \"${file}\" \"${workspaceFolder}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

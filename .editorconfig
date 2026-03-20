@@ -1,0 +1,21 @@
+# 主に VS Code 以外のエディタや、個人設定差がある環境でも
+# 改行コード・インデント幅・末尾改行を揃えやすくするための共通設定
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = false
+
+[*.{tex,bib,cls,sty}]
+indent_style = space
+indent_size = 2
+
+[*.{json,jsonc,yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.sh]
+indent_style = space
+indent_size = 2

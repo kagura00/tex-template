@@ -1,0 +1,8 @@
+{
+  // コンテナに入る前のホスト側で案内したい拡張。
+  // LaTeX 系の本命拡張は devcontainer.json 側でコンテナ内に入れる。
+  // ホスト側では Dev Containers だけあれば、このテンプレートは起動できる。
+  "recommendations": [
+    "ms-vscode-remote.remote-containers"
+  ]
+}
