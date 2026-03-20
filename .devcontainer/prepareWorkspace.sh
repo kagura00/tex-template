@@ -4,6 +4,8 @@ set -eu
 # Windows 共有フォルダを bind mount したワークスペースでは、
 # 既存の aux/ や out/ が root 所有の 755 で見えることがある。
 # 保存時ビルドのたびに texlive ユーザーが書き込める状態へ整える。
+# owner/group がホスト側と噛み合わない bind mount でも失敗しにくいよう、
+# ここでは 0775 ではなく 0777 を使う。
 sudo mkdir -p aux out
 sudo chmod 0777 aux out
 

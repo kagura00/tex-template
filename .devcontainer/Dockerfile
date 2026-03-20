@@ -1,6 +1,7 @@
 # texlive/texlive は full scheme を週次更新している。
 # すべての TeX Live パッケージを含むが、documentation/source は標準では含めない。
 # 配布物の再現性を優先し、latest を digest で固定して意図的に更新する。
+# 更新時は texlive/texlive の新しい digest を確認し、FROM 行だけ差し替える。
 FROM texlive/texlive:latest@sha256:f0bc49733665c09378b8ec0aca40e3263211bd208c9ecb7dfcce4967f234cf49
 
 # textlint 15 系は Node.js 20 以上が必要なため、

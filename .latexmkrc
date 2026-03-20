@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+# latexmk が自動で読み込む Perl 設定ファイル。
 
 # 既定は LuaLaTeX で PDF を直接生成する。
 $pdf_mode = 4;

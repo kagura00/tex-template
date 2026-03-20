@@ -500,6 +500,7 @@
       "\\newtheorem{remark}[theorem]{注意}",
       "% \\newtheorem{notation}[theorem]{記法}",
       "",
+      "% listings の詳しい見た目を揃えたい場合は、main.tex の \\lstset を参照。",
       "\\lstset{",
       "  basicstyle={\\ttfamily},",
       "  backgroundcolor={\\color[gray]{0.95}},",
