@@ -1,6 +1,7 @@
 % このサンプル文書は ltjsarticle を使うため、既定では LuaLaTeX 前提。
 % upLaTeX / pLaTeX に切り替える場合は documentclass も合わせて変更する。
 \documentclass[12pt,a4paper,titlepage]{ltjsarticle}
+% \usepackage[haranoaji]{luatexja-preset} % どの環境でもPDFの見た目を統一したい場合
 
 % 数式と定理
 \usepackage{amssymb}
@@ -224,9 +225,9 @@ def square(x):
 
 \section{文献参照の例}
 このテンプレートでは，参考文献を \texttt{references.bib} で管理する前提にしています．
-たとえば~\cite{latexcompanion} のように書けば，BibTeX で文献一覧を自動生成できます．
+たとえば~\cite{latexcompanion} や ~\cite{okumura} のように書けば，BibTeX で文献一覧を自動生成できます．
 
-\bibliographystyle{unsrt}
+\bibliographystyle{junsrt}
 \bibliography{references}
 
 \end{document}

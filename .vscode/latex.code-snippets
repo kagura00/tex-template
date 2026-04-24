@@ -460,6 +460,7 @@
       "\\usepackage{bookmark}",
       "% \\usepackage[noabbrev,nameinlink]{cleveref} % \\cref を使いたい場合は hyperref の後で読む",
       "",
+      "% \\usepackage[haranoaji]{luatexja-preset} % どの環境でもPDFの見た目を統一したい場合",
       "% \\usepackage[margin=25mm]{geometry} % 余白を調整したい場合",
       "% \\usepackage{subcaption}            % 図を横に並べたい場合",
       "% \\usepackage{pdfpages}              % PDF をそのまま差し込みたい場合",
@@ -536,7 +537,7 @@
       "",
       "${0}",
       "",
-      "\\bibliographystyle{unsrt}",
+      "\\bibliographystyle{junsrt}",
       "\\bibliography{references}",
       "",
       "\\end{document}"

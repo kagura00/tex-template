@@ -1,8 +1,9 @@
-# texlive/texlive は full scheme を週次更新している。
-# すべての TeX Live パッケージを含むが、documentation/source は標準では含めない。
-# 配布物の再現性を優先し、latest を digest で固定して意図的に更新する。
-# 更新時は texlive/texlive の新しい digest を確認し、FROM 行だけ差し替える。
-FROM texlive/texlive:latest@sha256:f0bc49733665c09378b8ec0aca40e3263211bd208c9ecb7dfcce4967f234cf49
+# texlive/texlive は full scheme を週次更新しているが、latest は上書きされるため
+# 過去の digest 指定はいずれ Docker Hub の仕様により削除され取得不能になるリスクがある。
+# 配布物の確実な再現性と、いつ環境構築しても失敗しない安定性を両立するため、
+# 年次で完全にフリーズされる historic タグの最新版を使用する。
+# 更新時は次年度の historic タグ (例: TL2026-historic) がリリースされたら差し替える。
+FROM texlive/texlive:TL2025-historic
 
 # textlint 15 系は Node.js 20 以上が必要なため、
 # Debian 既定の古い nodejs ではなく公式配布物を入れる。

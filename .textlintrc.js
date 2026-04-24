@@ -7,7 +7,8 @@ module.exports = {
     "preset-ja-technical-writing": {
       // 論文で使いやすい「，」「．」に合わせる。
       "ja-no-mixed-period": {
-        periodMark: "．"
+        periodMark: "．",
+        commaMark: "，"
       },
       "max-comma": {
         max: 4
