@@ -98,3 +98,9 @@
 - `subfig` を使うときは、前文のコメントにある `\usepackage{subcaption}` を有効にします。
 - `cref` を使うときは、前文のコメントにある `\usepackage[noabbrev,nameinlink]{cleveref}` を有効にします。
 - `mint` を使うときは、前文のコメントにある `\usepackage{minted}` を有効にし、`LuaLaTeX + shell-escape` のレシピを選びます。
+
+## スニペットの追加・編集方法
+
+自分用にスニペットを追加したり、既存のものを編集したりする場合は以下のドキュメントを参照してください。
+
+- [スニペットの追加・編集方法](edit-snippets.md)
