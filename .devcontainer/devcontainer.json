@@ -33,14 +33,15 @@
   "customizations": {
     "vscode": {
       "settings": {
-        // textlint はコンテナ内にグローバルインストールしているため、
+        // textlint はイメージ内の固定依存としてインストールしているため、
         // Linux 側の node_modules をコンテナ接続時だけ参照させる。
-        "textlint.nodePath": "/usr/local/lib/node_modules"
+        "textlint.nodePath": "/opt/textlint/node_modules"
       },
       // このテンプレートで前提とする拡張
       "extensions": [
         "james-yu.latex-workshop",
         "3w36zj6.textlint",
+        "streetsidesoftware.code-spell-checker",
         "hediet.vscode-drawio",
         "usernamehw.errorlens"
       ]

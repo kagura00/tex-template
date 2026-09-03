@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check shell syntax
+        run: bash -n .devcontainer/postCreate.sh .devcontainer/prepareWorkspace.sh .vscode/latex-task.sh
+
+      - name: Build development image
+        run: docker build --file .devcontainer/Dockerfile --tag tex-template-ci .devcontainer
+
+      - name: Lint and build sample document
+        run: |
+          docker run --rm \
+            --user texlive \
+            --volume "${GITHUB_WORKSPACE}:/workspace" \
+            --workdir /workspace \
+            tex-template-ci \
+            bash -c 'set -euo pipefail
+              bash .devcontainer/prepareWorkspace.sh
+              textlint main.tex
+              chktex -wall -n19 -n22 -n30 -e16 -q main.tex
+              test "$(bash .vscode/latex-task.sh print-root main.tex /workspace)" = /workspace/main.tex
+              bash .vscode/latex-task.sh lualatex main.tex /workspace
+              test -s out/main.pdf
+              ! grep -Eq "duplicate destination|undefined references|Citation .* undefined|Reference .* undefined" aux/main.log'

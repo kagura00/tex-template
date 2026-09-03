@@ -1,13 +1,12 @@
-# texlive/texlive は full scheme を週次更新しているが、latest は上書きされるため
-# 過去の digest 指定はいずれ Docker Hub の仕様により削除され取得不能になるリスクがある。
-# 配布物の確実な再現性と、いつ環境構築しても失敗しない安定性を両立するため、
-# 年次で完全にフリーズされる historic タグの最新版を使用する。
-# 更新時は次年度の historic タグ (例: TL2026-historic) がリリースされたら差し替える。
+# latest の古い digest は取得不能になることがあるため、TeX Live の年度を
+# historic タグで固定する。TeX Live 本体は年度固定だが、OS 更新を取り込むため
+# このタグのイメージ自体は定期的に再構築される。
+# 更新時は次年度の historic タグ (例: TL2026-historic) の公開を確認して差し替える。
 FROM texlive/texlive:TL2025-historic
 
-# textlint 15 系は Node.js 20 以上が必要なため、
+# textlint 15 系は Node.js 20 以上が必要なため、サポート中の LTS を固定する。
 # Debian 既定の古い nodejs ではなく公式配布物を入れる。
-ARG NODE_VERSION=22.22.1
+ARG NODE_VERSION=24.20.0
 
 # Dockerfile のような非対話スクリプトでは、apt より apt-get の方が出力と挙動が安定する。
 RUN apt-get update && \
@@ -32,8 +31,8 @@ RUN echo 'texlive ALL=(root) NOPASSWD:ALL' >/etc/sudoers.d/texlive && \
 RUN set -eux; \
     arch="$(dpkg --print-architecture)"; \
     case "${arch}" in \
-        amd64) node_arch='x64'; node_sha256='9a6bc82f9b491279147219f6a18add1e18424dce90d41d2a5fcd69d4924ba3aa' ;; \
-        arm64) node_arch='arm64'; node_sha256='0f3550d58d45e5d3cf7103d9e3f69937f09fe82fb5dd474c66a5d816fa58c9ee' ;; \
+        amd64) node_arch='x64'; node_sha256='2f2c0da162318f0de47665410c7c8c2ed3d36c8f3105de4bbc61176c70a7cbf2' ;; \
+        arm64) node_arch='arm64'; node_sha256='5f4ddab610c1ab2016b3c227cebdbf6d9495161487e4739c7b90090595f465f7' ;; \
         *) echo "unsupported architecture: ${arch}" >&2; exit 1 ;; \
     esac; \
     command -v latexmk; \
@@ -52,12 +51,10 @@ RUN set -eux; \
     node --version; \
     npm --version
 
-# textlint と LaTeX 向けプラグイン・日本語ルールをイメージに同梱して、
-# コンテナ接続直後からそのまま使えるようにする。
-RUN npm install -g \
-    textlint@15.5.2 \
-    textlint-plugin-latex2e@1.2.1 \
-    textlint-rule-preset-ja-spacing@2.4.3 \
-    textlint-rule-preset-ja-technical-writing@12.0.2 && \
+# textlint とルール一式は package-lock.json で推移依存まで固定する。
+COPY package.json package-lock.json /opt/textlint/
+ENV PATH="/opt/textlint/node_modules/.bin:${PATH}"
+RUN npm ci --prefix /opt/textlint --omit=dev --ignore-scripts && \
+    ln -s /opt/textlint/node_modules/.bin/textlint /usr/local/bin/textlint && \
     npm cache clean --force && \
     textlint --version

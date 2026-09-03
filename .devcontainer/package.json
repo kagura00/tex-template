@@ -1,0 +1,11 @@
+{
+  "name": "tex-template-textlint",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "textlint": "15.8.0",
+    "textlint-plugin-latex2e": "1.2.1",
+    "textlint-rule-preset-ja-spacing": "3.0.3",
+    "textlint-rule-preset-ja-technical-writing": "12.0.2"
+  }
+}

@@ -112,6 +112,9 @@
 \date{\today}
 
 \begin{document}
+% titlepage がページ番号を再設定しても PDF 内部のアンカーが重複しないよう、
+% 表紙・要旨・目次ではページアンカーを作らない。
+\hypersetup{pageanchor=false}
 % Word 等で作成した表紙 PDF を先頭に入れる場合は、次のように書く。
 % 表紙をこれで置き換えるなら \maketitle はコメントアウトする。
 % \includepdf[pages=1]{images/titlepage.pdf}
@@ -137,7 +140,7 @@
 \clearpage
 
 \pagenumbering{arabic}
-\setcounter{page}{1}
+\hypersetup{pageanchor=true}
 
 \section{はじめに}
 ここから本文を書き始めます．
@@ -225,7 +228,7 @@ def square(x):
 
 \section{文献参照の例}
 このテンプレートでは，参考文献を \texttt{references.bib} で管理する前提にしています．
-たとえば~\cite{latexcompanion} や ~\cite{okumura} のように書けば，BibTeX で文献一覧を自動生成できます．
+たとえば~\cite{latexcompanion}や~\cite{okumura}のように書けば，BibTeX で文献一覧を自動生成できます．
 
 \bibliographystyle{junsrt}
 \bibliography{references}

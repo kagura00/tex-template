@@ -228,6 +228,7 @@ Word などで表紙だけを別に作り、PDF として 1 ページ目へ差�
 - `latexindent` による整形
 - `chktex` による LaTeX の lint
 - `textlint` による日本語校正
+- Code Spell Checker による英単語のスペルチェック
 - `Error Lens` による診断表示
 - `references.bib` を使った BibTeX 管理
 - 定理環境と `siunitx` の初期設定
@@ -241,6 +242,7 @@ Word などで表紙だけを別に作り、PDF として 1 ページ目へ差�
 
 - `james-yu.latex-workshop`
 - `3w36zj6.textlint`
+- `streetsidesoftware.code-spell-checker`
 - `hediet.vscode-drawio`
 - `usernamehw.errorlens`
 
@@ -297,12 +299,19 @@ README では、最初によく使うものだけ挙げます。
 
 ```text
 .
+|-- .github/
+|   |-- dependabot.yml
+|   `-- workflows/
+|       `-- ci.yml
 |-- .devcontainer/
 |   |-- devcontainer.json
 |   |-- Dockerfile
+|   |-- package-lock.json
+|   |-- package.json
 |   |-- prepareWorkspace.sh
 |   `-- postCreate.sh
 |-- docs/
+|   |-- edit-snippets.md
 |   `-- snippets.md
 |-- .vscode/
 |   |-- extensions.json
@@ -335,7 +344,8 @@ README では、最初によく使うものだけ挙げます。
 - `.vscode/latex-task.sh`: 手動タスク実行時の root 解決
 - `.vscode/latex.code-snippets`: スニペット定義
 - `docs/snippets.md`: スニペットの日本語ガイド
-- `.devcontainer/`: コンテナの構成
+- `.devcontainer/`: コンテナの構成。Node.js と textlint 関連依存もここで固定
+- `.github/workflows/ci.yml`: コンテナ構築、textlint、サンプル PDF 生成の自動確認
 - `aux/`: 補助ファイルとログの出力先
 - `images/`: 画像置き場。`sample.drawio.png` を編集例として同梱
 - `out/`: PDF と SyncTeX ファイルの出力先
@@ -344,7 +354,10 @@ README では、最初によく使うものだけ挙げます。
 
 初回のコンテナ作成にはネットワークが必要です。
 この段階では、`texlive/texlive` ベースイメージの取得、`apt-get`、Node.js の取得、`npm` パッケージの取得、VS Code 拡張の初回インストールが発生します。
-ベースイメージは `texlive/texlive` の full scheme をもとにしつつ、documentation/source は含めない仕様で、リポジトリ側では将来にわたり削除されない年次アーカイブ（`TLXXXX-historic`）にタグを固定しています。
+ベースイメージは `texlive/texlive` の full scheme をもとにしつつ、documentation/source は含めない仕様です。
+TeX Live 本体の世代は年次アーカイブタグ（`TLXXXX-historic`）で固定していますが、OS の更新を取り込むため同じタグのイメージも定期的に再構築されます。
+また、historic イメージは amd64 版のみのため、Apple Silicon などの arm64 ホストでは Docker の amd64 エミュレーションを利用します。
+Node.js は LTS の特定バージョンと公式 SHA-256、textlint 関連は `package-lock.json` で推移依存まで固定しています。
 初回のインストール作業は時間がかかりますが、次回以降は早くなります。
 
 一方、初回起動が一度成功した後は、次の作業はオフラインでも実行できます。
@@ -413,6 +426,8 @@ README では、最初によく使うものだけ挙げます。
 - `textlint` のルールを変える: `.textlintrc.js`
 - スニペットを増やす: `.vscode/latex.code-snippets`
 - ベースイメージを更新する: `.devcontainer/Dockerfile`
+- textlint 関連を更新する: `.devcontainer/package.json` と `.devcontainer/package-lock.json`
 
-ベースイメージは過去にリリースされた `texlive/texlive` の環境を完全にフリーズした歴史的アーカイブタグ（historic）を使用し、このテンプレートでは環境の堅牢な再現性を優先しています。
-TeX Live や同梱パッケージの年次更新を取り込みたい場合は、`.devcontainer/Dockerfile` の \`FROM\` 行を例えば `TL2026-historic` のように最新のアーカイブタグへ更新し、\`Dev Containers: Rebuild Container\` で動作確認してください。
+ベースイメージには、TeX Live 本体を年度単位で固定する歴史的アーカイブタグ（historic）を使用しています。
+ただし、historic タグは OS のセキュリティ更新を取り込むため毎月再構築されることがあり、コンテナ全体がビット単位で不変という意味ではありません。
+TeX Live の年次更新を取り込みたい場合は、対象年度の historic タグが実際に公開されたことを確認してから `.devcontainer/Dockerfile` の `FROM` 行を更新し、`Dev Containers: Rebuild Container` と CI で動作確認してください。
