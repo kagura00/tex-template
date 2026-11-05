@@ -195,7 +195,7 @@ ZIP 展開後のフォルダ（または作成したリポジトリ）を VS Cod
 - `latexmk (pLaTeX + dvipdfmx)`
 
 レシピの切り替えは `LaTeX Workshop: Build with recipe` から行います。
-一度選んだレシピは、その後の自動ビルドでも使われます。
+保存時の自動ビルドは通常の LuaLaTeX に戻ります。shell-escape が必要なときだけ手動で対応レシピを選んでください。
 
 ただし、配布時点の `main.tex` は LuaLaTeX 用です。
 `upLaTeX` や `pLaTeX` に切り替える場合は、レシピだけでなく `\documentclass` や関連パッケージもそのエンジン向けに変更してください。
@@ -263,7 +263,8 @@ Word などで表紙だけを別に作り、PDF として 1 ページ目へ差�
 
 ### 補助ツールについて
 
-ベースイメージには、TeX Live 本体に加えて `Perl`、`Python`、`Pygments`、`Java` などの補助ツールも入っています。
+コンテナには、TeX Live 本体に加えて `Perl`、`Python`、`Pygments` などの補助ツールも入っています。
+古い bundled Java ライブラリを除くため、Java 実行環境と JAR ファイルは同梱しません。`arara`、`texplate`、`tlcockpit`、`bib2gls` など Java が必要な補助ツールはサポート対象外です。
 これらは LaTeX 関連ツールの実行に使うためのもので、基本的に追加の VS Code 拡張は必要ありません。
 
 - `Perl`: `latexmk`、`upbibtex`、`biber`、`xindy` などが内部で使用します
@@ -308,7 +309,10 @@ README では、最初によく使うものだけ挙げます。
 |   |-- Dockerfile
 |   |-- package-lock.json
 |   |-- package.json
+|   |-- check-node-security.mjs
+|   |-- prepare-tex-workspace.sh
 |   |-- prepareWorkspace.sh
+|   |-- test-security.sh
 |   `-- postCreate.sh
 |-- docs/
 |   |-- edit-snippets.md
@@ -354,10 +358,10 @@ README では、最初によく使うものだけ挙げます。
 
 初回のコンテナ作成にはネットワークが必要です。
 この段階では、`texlive/texlive` ベースイメージの取得、`apt-get`、Node.js の取得、`npm` パッケージの取得、VS Code 拡張の初回インストールが発生します。
-ベースイメージは `texlive/texlive` の full scheme をもとにしつつ、documentation/source は含めない仕様です。
-TeX Live 本体の世代は年次アーカイブタグ（`TLXXXX-historic`）で固定していますが、OS の更新を取り込むため同じタグのイメージも定期的に再構築されます。
-また、historic イメージは amd64 版のみのため、Apple Silicon などの arm64 ホストでは Docker の amd64 エミュレーションを利用します。
-Node.js は LTS の特定バージョンと公式 SHA-256、textlint 関連は `package-lock.json` で推移依存まで固定しています。
+OS は Debian 13 (trixie) stable、TeX Live は 2026 の検証済みスナップショットです。両方の取得元を digest で固定し、OS の security 更新は構築時に適用します。初回構築用の空き容量は 30 GB 以上を目安にしてください。
+TeX Live のマクロ・フォントは full scheme をもとにしつつ、documentation/source と Java 用 JAR は含めません。
+amd64 と arm64 のネイティブバイナリを選択する構成です。配布前の自動ビルド検証は amd64 で行います。
+Node.js は LTS の特定バージョンと公式 SHA-256、npm 本体は Dockerfile の `NPM_VERSION`、textlint 関連は `package-lock.json` で推移依存まで固定しています。
 初回のインストール作業は時間がかかりますが、次回以降は早くなります。
 
 一方、初回起動が一度成功した後は、次の作業はオフラインでも実行できます。
@@ -428,6 +432,16 @@ Node.js は LTS の特定バージョンと公式 SHA-256、textlint 関連は `
 - ベースイメージを更新する: `.devcontainer/Dockerfile`
 - textlint 関連を更新する: `.devcontainer/package.json` と `.devcontainer/package-lock.json`
 
-ベースイメージには、TeX Live 本体を年度単位で固定する歴史的アーカイブタグ（historic）を使用しています。
-ただし、historic タグは OS のセキュリティ更新を取り込むため毎月再構築されることがあり、コンテナ全体がビット単位で不変という意味ではありません。
-TeX Live の年次更新を取り込みたい場合は、対象年度の historic タグが実際に公開されたことを確認してから `.devcontainer/Dockerfile` の `FROM` 行を更新し、`Dev Containers: Rebuild Container` と CI で動作確認してください。
+Dockerfile の OS と TeX Live の digest は Dependabot で更新を監視します。TeX Live の年度を変える場合はコピー元パスも合わせて更新してください。
+Node.js はバージョンと公式 SHA-256 をセットで更新します。`glob` / `minimatch` は textlint と npm CLI の両方で修正版を共有しています。上流の依存要件が追従したら override と npm 側の共有リンクの撤去を検討してください。CI では npm の実インストール操作も検証します。
+
+## セキュリティと保守
+
+更新時の検証範囲と修正版未提供の指摘は [セキュリティ検証記録](docs/security-status.md) を参照してください。
+
+- CI は週次・push・PR・手動で実行し、npm 監査、Node.js の修正リリースとサポート期限、完成イメージの修正可能な High/Critical 検査、ZIP 相当のビルドとパス検査を行います。未修正の脆弱性までゼロと保証するものではありません。
+- 更新後は `Dev Containers: Rebuild Container Without Cache` を実行してください。既存コンテナはファイル更新だけでは置き換わりません。
+- 定期的に Docker Desktop、VS Code、Dev Containers とコンテナ内拡張も更新してください。拡張の最新版はロックファイルの対象外です。
+- TeX 原稿、`.latexmkrc`、textlint の設定・プラグインはコードを実行できます。信頼できない原稿や設定をそのままビルドしないでください。
+- 手動タスクの root はワークスペース内に限定します。外部への root 指定、循環参照、出力先 `aux/` / `out/` のシンボリックリンクは拒否します。
+- sudo は `/workspaces/` 配下（CI は `/workspace`）の出力先を整える補助処理だけに限定しています。一般コマンドへの無制限の昇格は許可しません。

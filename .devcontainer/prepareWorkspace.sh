@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 set -eu
 
-# Windows 共有フォルダを bind mount したワークスペースでは、
-# 既存の aux/ や out/ が root 所有の 755 で見えることがある。
-# 保存時ビルドのたびに texlive ユーザーが書き込める状態へ整える。
-# owner/group がホスト側と噛み合わない bind mount でも失敗しにくいよう、
-# ここでは 0775 ではなく 0777 を使う。
-sudo mkdir -p aux out
-sudo chmod 0777 aux out
+# 出力先だけ所有者を調整する。sudo はパス検査付き補助処理に限定する。
+sudo -n /usr/local/sbin/prepare-tex-workspace "$(pwd -P)"
 
 # コンテナ内 Git は bind mount 上で safe.directory と filemode の影響を受けやすい。
 workspace_root="$(pwd)"

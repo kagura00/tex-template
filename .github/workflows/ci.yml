@@ -6,6 +6,8 @@ on:
       - main
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '23 3 * * 1'
 
 permissions:
   contents: read
@@ -16,17 +18,45 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 60
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Check shell syntax
-        run: bash -n .devcontainer/postCreate.sh .devcontainer/prepareWorkspace.sh .vscode/latex-task.sh
+        run: bash -n .devcontainer/*.sh .vscode/latex-task.sh
+
+      - name: Reserve disk space for TeX Live and image scanning
+        run: |
+          # このジョブ専用ランナーの未使用 SDK を除き、イメージ展開領域を確保する。
+          for sdk in /usr/local/lib/android /usr/share/dotnet /opt/ghc; do
+            if [ -d "$sdk" ] && [ "$(realpath "$sdk")" = "$sdk" ]; then
+              sudo rm -rf -- "$sdk"
+            fi
+          done
 
       - name: Build development image
-        run: docker build --file .devcontainer/Dockerfile --tag tex-template-ci .devcontainer
+        run: docker build --pull --file .devcontainer/Dockerfile --tag tex-template-ci .devcontainer
+
+      - name: Audit locked npm dependencies
+        run: docker run --rm --volume "${GITHUB_WORKSPACE}/.devcontainer:/audit:ro" --workdir /audit tex-template-ci npm audit --package-lock-only --omit=dev
+
+      - name: Check Node.js security releases and support lifetime
+        run: docker run --rm --volume "${GITHUB_WORKSPACE}/.devcontainer:/audit:ro" tex-template-ci node /audit/check-node-security.mjs
+
+      - name: Scan completed image for fixable high and critical vulnerabilities
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
+        with:
+          image-ref: tex-template-ci
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          scanners: vuln
+          version: v0.76.2
+          timeout: 15m
 
       - name: Lint and build sample document
         run: |
@@ -42,4 +72,5 @@ jobs:
               test "$(bash .vscode/latex-task.sh print-root main.tex /workspace)" = /workspace/main.tex
               bash .vscode/latex-task.sh lualatex main.tex /workspace
               test -s out/main.pdf
-              ! grep -Eq "duplicate destination|undefined references|Citation .* undefined|Reference .* undefined" aux/main.log'
+              ! grep -Eq "duplicate destination|undefined references|Citation .* undefined|Reference .* undefined" aux/main.log
+              bash .devcontainer/test-security.sh'

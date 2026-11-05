@@ -3,14 +3,14 @@ updates:
   - package-ecosystem: npm
     directory: /.devcontainer
     schedule:
-      interval: monthly
+      interval: weekly
 
   - package-ecosystem: docker
     directory: /.devcontainer
     schedule:
-      interval: monthly
+      interval: weekly
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly

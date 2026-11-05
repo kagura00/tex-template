@@ -4,8 +4,9 @@
     {
       // 現在ファイルの % !TeX root や近い main.tex を見て、LuaLaTeX で手動ビルドする
       "label": "LaTeX: Build (LuaLaTeX)",
-      "type": "shell",
-      "command": "bash .vscode/latex-task.sh lualatex \"${file}\" \"${workspaceFolder}\"",
+      "type": "process",
+      "command": "bash",
+      "args": [".vscode/latex-task.sh", "lualatex", "${file}", "${workspaceFolder}"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -18,8 +19,9 @@
     {
       // minted など shell-escape が必要なパッケージを使うときの LuaLaTeX ビルド。
       "label": "LaTeX: Build (LuaLaTeX + shell-escape)",
-      "type": "shell",
-      "command": "bash .vscode/latex-task.sh lualatex-shell-escape \"${file}\" \"${workspaceFolder}\"",
+      "type": "process",
+      "command": "bash",
+      "args": [".vscode/latex-task.sh", "lualatex-shell-escape", "${file}", "${workspaceFolder}"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -28,8 +30,9 @@
     {
       // 現在ファイルの % !TeX root や近い main.tex を見て、upLaTeX + dvipdfmx で手動ビルドする
       "label": "LaTeX: Build (upLaTeX + dvipdfmx)",
-      "type": "shell",
-      "command": "bash .vscode/latex-task.sh uplatex \"${file}\" \"${workspaceFolder}\"",
+      "type": "process",
+      "command": "bash",
+      "args": [".vscode/latex-task.sh", "uplatex", "${file}", "${workspaceFolder}"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -38,8 +41,9 @@
     {
       // 現在ファイルの % !TeX root や近い main.tex を見て、pLaTeX + dvipdfmx で手動ビルドする
       "label": "LaTeX: Build (pLaTeX + dvipdfmx)",
-      "type": "shell",
-      "command": "bash .vscode/latex-task.sh platex \"${file}\" \"${workspaceFolder}\"",
+      "type": "process",
+      "command": "bash",
+      "args": [".vscode/latex-task.sh", "platex", "${file}", "${workspaceFolder}"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -49,8 +53,9 @@
       // 現在ファイルの root と同じ aux/ を手動で空に戻したいとき用。
       // PDF と synctex.gz は残したまま、補助ファイルだけを片付けたいときに使う。
       "label": "LaTeX: Clean",
-      "type": "shell",
-      "command": "bash .vscode/latex-task.sh clean \"${file}\" \"${workspaceFolder}\"",
+      "type": "process",
+      "command": "bash",
+      "args": [".vscode/latex-task.sh", "clean", "${file}", "${workspaceFolder}"],
       "options": {
         "cwd": "${workspaceFolder}"
       },

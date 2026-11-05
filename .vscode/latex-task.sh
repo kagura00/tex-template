@@ -23,39 +23,30 @@ workspace_folder="$3"
 # bash の pwd ベースで正規化し、
 # 相対パスや .. を含む入力でも比較しやすい絶対パスに揃える。
 canonicalize_dir() {
-  cd "$1" >/dev/null 2>&1 && pwd
+  cd "$1" >/dev/null 2>&1 && pwd -P
 }
 
 canonicalize_file() {
-  local target="$1"
-  local dir
-  local base
-
-  if [[ "$target" != /* ]]; then
-    target="$PWD/$target"
-  fi
-
-  dir=$(dirname "$target")
-  base=$(basename "$target")
-  dir=$(canonicalize_dir "$dir")
-  printf '%s/%s\n' "$dir" "$base"
+  realpath -e -- "$1"
 }
 
 resolve_relative_file() {
   local base_dir="$1"
   local target="$2"
-  local dir
-  local base
 
   if [[ "$target" = /* ]]; then
     canonicalize_file "$target"
     return
   fi
 
-  dir=$(dirname "$target")
-  base=$(basename "$target")
-  dir=$(cd "$base_dir" >/dev/null 2>&1 && cd "$dir" >/dev/null 2>&1 && pwd)
-  printf '%s/%s\n' "$dir" "$base"
+  canonicalize_file "$base_dir/$target"
+}
+
+require_workspace_path() {
+  case "$1" in
+    "$workspace_dir"/*) ;;
+    *) echo "error: path escapes workspace: $1" >&2; return 1 ;;
+  esac
 }
 
 extract_magic_root() {
@@ -70,24 +61,23 @@ has_documentclass() {
 # 循環参照で無限ループしないよう訪問済みパスを記録する。
 resolve_magic_root() {
   local current="$1"
-  local seen=""
+  local -A seen=()
   local target=""
 
   while true; do
-    case " $seen " in
-      *" $current "*)
-        break
-        ;;
-    esac
-
-    seen="$seen $current"
+    require_workspace_path "$current" || return 1
+    if [[ -v 'seen[$current]' ]]; then
+      echo "error: cyclic TeX root: $current" >&2
+      return 1
+    fi
+    seen["$current"]=1
     target=$(extract_magic_root "$current")
 
     if [ -z "$target" ]; then
       break
     fi
 
-    current=$(resolve_relative_file "$(dirname "$current")" "$target")
+    current=$(resolve_relative_file "$(dirname "$current")" "$target") || return 1
   done
 
   printf '%s\n' "$current"
@@ -153,9 +143,10 @@ resolve_root_file() {
   local root_from_magic
   local root_from_nearest_dir
 
-  file_path=$(canonicalize_file "$1")
-  workspace_dir=$(canonicalize_dir "$2")
-  root_from_magic=$(resolve_magic_root "$file_path")
+  file_path=$(canonicalize_file "$1") || return 1
+  workspace_dir=$(canonicalize_dir "$2") || return 1
+  require_workspace_path "$file_path" || return 1
+  root_from_magic=$(resolve_magic_root "$file_path") || return 1
 
   if [ "$root_from_magic" != "$file_path" ]; then
     printf '%s\n' "$root_from_magic"
@@ -186,6 +177,14 @@ if [ "$action" = "print-root" ]; then
   printf '%s\n' "$root_file"
   exit 0
 fi
+
+# 出力先のシンボリックリンクを経由した外部書込み・削除を拒否する。
+for output_dir in "$aux_dir" "$out_dir"; do
+  if [ -L "$output_dir" ]; then
+    echo "error: output directory is a symlink: $output_dir" >&2
+    exit 1
+  fi
+done
 
 cd "$root_dir"
 

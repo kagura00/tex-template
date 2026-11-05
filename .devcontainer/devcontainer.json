@@ -16,7 +16,7 @@
   "hostRequirements": {
     "cpus": 2,
     "memory": "4gb",
-    "storage": "20gb"
+    "storage": "30gb"
   },
   // コンテナ側の VS Code 拡張本体と拡張状態を名前付き volume に逃がして、
   // Rebuild Container でも入れ直しや状態リセットを減らす。

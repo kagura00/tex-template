@@ -10,8 +10,8 @@
   // PDF は out/、補助ファイルは aux/ に分ける
   "latex-workshop.latex.outDir": "%DIR%/out",
   "latex-workshop.latex.auxDir": "%DIR%/aux",
-  // 手動で選んだレシピを次回以降の自動ビルドにも使う
-  "latex-workshop.latex.recipe.default": "lastUsed",
+  // shell-escape を手動選択しても、保存時は通常レシピへ戻す
+  "latex-workshop.latex.recipe.default": "latexmk (LuaLaTeX)",
   // 分割原稿では % !TeX root = ... を使えるようにしておく
   "latex-workshop.latex.build.enableMagicComments": true,
   // subfile 構成を前提にしないシンプルな root 判定
