@@ -47,17 +47,28 @@ jobs:
       - name: Check Node.js security releases and support lifetime
         run: docker run --rm --volume "${GITHUB_WORKSPACE}/.devcontainer:/audit:ro" tex-template-ci node /audit/check-node-security.mjs
 
-      - name: Scan completed image for fixable high and critical vulnerabilities
+      - name: Scan completed image including unfixed vulnerabilities
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: tex-template-ci
           severity: HIGH,CRITICAL
-          ignore-unfixed: true
-          exit-code: '1'
+          ignore-unfixed: false
+          exit-code: '0'
+          format: json
+          output: ${{ runner.temp }}/trivy-results.json
           scanners: vuln
           version: v0.76.2
           timeout: 15m
           cache-dir: ${{ runner.temp }}/trivy-cache
+
+      - name: Report all findings and reject fixable high and critical vulnerabilities
+        run: |
+          docker run --rm \
+            --volume "${GITHUB_WORKSPACE}/.devcontainer:/audit:ro" \
+            --volume "${RUNNER_TEMP}/trivy-results.json:/trivy-results.json:ro" \
+            --volume "${GITHUB_STEP_SUMMARY}:/summary.md" \
+            --env GITHUB_STEP_SUMMARY=/summary.md \
+            tex-template-ci node /audit/check-image-security.cjs /trivy-results.json
 
       - name: Lint and build sample document
         run: |
@@ -74,4 +85,5 @@ jobs:
               bash .vscode/latex-task.sh lualatex main.tex /workspace
               test -s out/main.pdf
               ! grep -Eq "duplicate destination|undefined references|Citation .* undefined|Reference .* undefined" aux/main.log
-              bash .devcontainer/test-security.sh'
+              bash .devcontainer/test-security.sh
+              node .devcontainer/test-features.cjs'

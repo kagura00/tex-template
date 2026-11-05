@@ -269,14 +269,17 @@ Word などで表紙だけを別に作り、PDF として 1 ページ目へ差�
 
 - `Perl`: `latexmk`、`upbibtex`、`biber`、`xindy` などが内部で使用します
 - `Python` と `Pygments`: `minted` などのコードハイライト系パッケージで使用できます
-- `Java`: `arara` を使う場合に必要です
+- `gnuplot` と `Asymptote`: グラフや図の生成に使用できます
+- `zip` / `unzip` と `tidy`: EPUB の生成、アーカイブ操作、HTML の整形に使用できます
+- Fontconfig に TeX Live のフォントを登録しているため、XeLaTeX からフォント名で指定できます
 - `ripgrep`: コンテナ内でログや本文を検索するときに使えます
 - `poppler-utils`: `pdftotext` や `pdfinfo` で PDF の確認に使えます
 
 ただし、このテンプレートの既定設定では次の点に注意してください。
 
 - `minted` を使う場合は、`\usepackage{minted}` を追加し、`latexmk (LuaLaTeX + shell-escape)` か `LaTeX: Build (LuaLaTeX + shell-escape)` を使ってください
-- `arara` はコマンド自体は入っていますが、専用レシピやタスクは同梱していません。使う場合は各自で追加してください
+- `arara` など Java 系ツールのランチャーが存在しても、Java と JAR を同梱していないため実行できません
+- X11 の外部 DVI ビューア `xdvi-xaw` はサポート対象外です。PDF は VS Code 内蔵ビューアで確認してください
 
 ## スニペット
 
@@ -313,6 +316,8 @@ README では、最初によく使うものだけ挙げます。
 |   |-- prepare-tex-workspace.sh
 |   |-- prepareWorkspace.sh
 |   |-- test-security.sh
+|   |-- test-features.cjs
+|   |-- check-image-security.cjs
 |   `-- postCreate.sh
 |-- docs/
 |   |-- edit-snippets.md
@@ -439,7 +444,7 @@ Node.js はバージョンと公式 SHA-256 をセットで更新します。`gl
 
 更新時の検証範囲と修正版未提供の指摘は [セキュリティ検証記録](docs/security-status.md) を参照してください。
 
-- CI は週次・push・PR・手動で実行し、npm 監査、Node.js の修正リリースとサポート期限、完成イメージの修正可能な High/Critical 検査、ZIP 相当のビルドとパス検査を行います。未修正の脆弱性までゼロと保証するものではありません。
+- CI は週次・push・PR・手動で実行し、npm 監査、Node.js の修正リリースとサポート期限、完成イメージの High/Critical 検査、ZIP 相当のビルドとパス検査を行います。脆弱性は未修正分も含めてジョブのサマリーに表示し、修正版のある指摘で失敗させます。加えてエンジン別 PDF、Biber、minted、索引、作図、HTML/EPUB、フォント名指定などの機能テストも実行します。未修正の脆弱性までゼロと保証するものではありません。
 - 更新後は `Dev Containers: Rebuild Container Without Cache` を実行してください。既存コンテナはファイル更新だけでは置き換わりません。
 - 定期的に Docker Desktop、VS Code、Dev Containers とコンテナ内拡張も更新してください。拡張の最新版はロックファイルの対象外です。
 - TeX 原稿、`.latexmkrc`、textlint の設定・プラグインはコードを実行できます。信頼できない原稿や設定をそのままビルドしないでください。

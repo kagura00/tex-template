@@ -23,6 +23,22 @@ if bash "$script" clean "$test_root/work/escape.tex" "$test_root/work"; then
   echo 'error: outside root accepted' >&2; exit 1
 fi
 test -s "$test_root/outside/aux/keep"
+# 親ディレクトリから暗黙に選ぶ root も、実体と magic root の両方を検査する。
+mkdir -p "$test_root/implicit/chapters"
+printf 'child text\n' > "$test_root/implicit/chapters/child.tex"
+ln -s "$test_root/outside/main.tex" "$test_root/implicit/main.tex"
+if bash "$script" clean "$test_root/implicit/chapters/child.tex" "$test_root/implicit"; then
+  echo 'error: outside implicit symlink root accepted' >&2; exit 1
+fi
+rm -- "$test_root/implicit/main.tex"
+printf '%% !TeX root = ../outside/main.tex\n' > "$test_root/implicit/main.tex"
+if bash "$script" clean "$test_root/implicit/chapters/child.tex" "$test_root/implicit"; then
+  echo 'error: outside implicit magic root accepted' >&2; exit 1
+fi
+printf '\\documentclass{article}\n' > "$test_root/implicit/actual.tex"
+printf '%% !TeX root = actual.tex\n' > "$test_root/implicit/main.tex"
+test "$(bash "$script" print-root "$test_root/implicit/chapters/child.tex" "$test_root/implicit")" = "$test_root/implicit/actual.tex"
+test -s "$test_root/outside/aux/keep"
 ln -s "$test_root/outside/aux" "$test_root/work/aux"
 if bash "$script" clean "$test_root/work/main.tex" "$test_root/work"; then
   echo 'error: symlink output accepted' >&2; exit 1

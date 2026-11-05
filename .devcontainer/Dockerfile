@@ -16,6 +16,7 @@ RUN printf '%s\n' 'Acquire::https::CaInfo "/etc/ssl/certs/ca-certificates.crt";'
     DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=0 install -y --no-install-recommends \
       ca-certificates curl git poppler-utils ripgrep sudo xz-utils \
       make fontconfig perl ghostscript libsm6 libncurses6 \
+      gnuplot-nox tidy zip unzip libglut3.12 libgl1 libglu1-mesa libtirpc3t64 \
       libgetopt-long-descriptive-perl libdigest-perl-md5-perl \
       libunicode-linebreak-perl libfile-homedir-perl libyaml-tiny-perl \
       libpdf-api2-perl python3 python3-pygments python-is-python3 && \
@@ -25,11 +26,17 @@ RUN printf '%s\n' 'Acquire::https::CaInfo "/etc/ssl/certs/ca-certificates.crt";'
 COPY --from=texlive-source /usr/local/texlive/2026 /usr/local/texlive/2026
 RUN set -eu; \
     case "$(dpkg --print-architecture)" in \
-      amd64) tex_arch=x86_64-linux ;; \
-      arm64) tex_arch=aarch64-linux ;; \
+      amd64) tex_arch=x86_64-linux; lib_arch=x86_64-linux-gnu ;; \
+      arm64) tex_arch=aarch64-linux; lib_arch=aarch64-linux-gnu ;; \
       *) exit 1 ;; \
     esac; \
     ln -s "/usr/local/texlive/2026/bin/${tex_arch}" /opt/texlive-bin; \
+    test -f "/usr/lib/${lib_arch}/libglut.so.3.12"; \
+    if [ ! -e "/usr/lib/${lib_arch}/libglut.so.3" ]; then \
+      ln -s "/usr/lib/${lib_arch}/libglut.so.3.12" "/usr/lib/${lib_arch}/libglut.so.3"; \
+    fi; \
+    cp /usr/local/texlive/2026/texmf-var/fonts/conf/texlive-fontconfig.conf /etc/fonts/conf.d/09-texlive-fonts.conf; \
+    fc-cache -f; \
     useradd -m -s /bin/bash texlive; \
     mkdir -p /home/texlive/.vscode-server/extensions /home/texlive/.vscode-server/data; \
     chown -R texlive:texlive /home/texlive/.vscode-server

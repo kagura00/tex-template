@@ -159,7 +159,8 @@ resolve_root_file() {
   fi
 
   if root_from_nearest_dir=$(find_nearest_root_candidate "$(dirname "$file_path")" "$workspace_dir"); then
-    printf '%s\n' "$root_from_nearest_dir"
+    root_from_nearest_dir=$(canonicalize_file "$root_from_nearest_dir") || return 1
+    resolve_magic_root "$root_from_nearest_dir"
     return
   fi
 
