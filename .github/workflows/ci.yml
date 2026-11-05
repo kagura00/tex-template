@@ -57,6 +57,7 @@ jobs:
           scanners: vuln
           version: v0.76.2
           timeout: 15m
+          cache-dir: ${{ runner.temp }}/trivy-cache
 
       - name: Lint and build sample document
         run: |

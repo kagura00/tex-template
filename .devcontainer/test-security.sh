@@ -40,7 +40,12 @@ if bash "$script" print-root "$test_root/work/cycle-a.tex" "$test_root/work"; th
 fi
 # ZIP 展開と同じく .git も既存の生成物もない状態から検証する。
 mkdir "$test_root/zip"
-tar --exclude=.git --exclude=aux --exclude=out --exclude=tmp -cf - . | tar -xf - -C "$test_root/zip"
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  # GitHub の ZIP と同じ管理対象だけを、現在の作業ファイルからコピーする。
+  git ls-files -z | tar --null --files-from=- -cf - | tar -xf - -C "$test_root/zip"
+else
+  tar --exclude=.git --exclude=.cache --exclude=aux --exclude=out --exclude=tmp -cf - . | tar -xf - -C "$test_root/zip"
+fi
 cd "$test_root/zip"
 test ! -e .git
 textlint main.tex
