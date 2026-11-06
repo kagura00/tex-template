@@ -28,3 +28,16 @@ test('query results reject outside paths and preserve names containing spaces', 
   const result = sync.parseResult('SyncTeX result begin\nInput:/private/a.tex\nLine:8\nInput:/__pdf_review__/chapter one/main.tex\nLine:12\nColumn:-1\n');
   assert.deepEqual(result, [{ path: 'chapter one/main.tex', line: 12 }]);
 });
+test('relative SyncTeX paths cannot silently select the wrong same-named source', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'review-sync-relative-'));
+  try {
+    await fs.mkdir(path.join(dir, 'slides'));
+    await fs.writeFile(path.join(dir, 'main.tex'), 'root document');
+    await fs.writeFile(path.join(dir, 'slides/main.tex'), 'slide document');
+    const pdf = path.join(dir, 'slides/main.pdf');
+    await fs.writeFile(path.join(dir, 'slides/main.synctex.gz'), zlib.gzipSync('SyncTeX Version:1\nInput:1:./main.tex\nOutput:pdf\n'));
+    await assert.rejects(sync.snapshot(pdf, dir), /同名の原稿候補/);
+    await fs.unlink(path.join(dir, 'main.tex'));
+    assert.equal((await sync.snapshot(pdf, dir)).inputs[0].path, 'slides/main.tex');
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});

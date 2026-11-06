@@ -82,11 +82,18 @@ function activate(context) {
     const edit = new vscode.WorkspaceEdit();
     edit.replace(document.uri, new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), text);
     if (!await vscode.workspace.applyEdit(edit)) throw new Error('コメントの更新を適用できませんでした。');
-    if (!await document.save()) throw new Error('保存できませんでした。タブの未保存状態を確認してください。');
+    // applyEdit後の保存失敗は投稿の失敗ではない。再投稿すると内容が重複する。
+    try {
+      if (await document.save()) return;
+    } catch (error) {
+      vscode.window.showWarningMessage(`PDFレビュー: 自動保存できませんでした: ${error.message}`);
+    }
+    vscode.window.showWarningMessage('PDFレビュー: 変更はタブに反映済みですが未保存です。再投稿せず、タブを閉じる前にCtrl+Sで保存してください。');
   }
 
   async function navigate(session, message) {
     if (!vscode.workspace.isTrusted) throw new Error('TeXへの移動にはワークスペースの信頼が必要です。');
+    const version = session.document.version;
     let review = model.parse(session.document.getText());
     const thread = review.threads.find(t => t.id === message.threadId);
     if (!thread) throw new Error('コメントが見つかりません。');
@@ -96,7 +103,6 @@ function activate(context) {
       const pdfUri = (await vscode.window.showOpenDialog({ title: 'レビューと同じ版のPDFを選択（隣に.synctex.gzが必要）', canSelectMany: false, filters: { PDF: ['pdf'] } }))?.[0];
       if (!pdfUri) return;
       if (model.hash(await readLimited(pdfUri, model.MAX_PDF)) !== review.pdf.sha256) throw new Error('PDFの版が一致しません。レビュー対象と同じPDF・SyncTeX情報を選択してください。');
-      const version = session.document.version;
       const snapshot = await sync.snapshot(pdfUri.fsPath, root);
       if (!snapshot?.inputs.length) throw new Error('対応するSyncTeX情報またはワークスペース内の原稿が見つかりません。');
       review = { ...review, sync: snapshot };
@@ -181,11 +187,17 @@ function activate(context) {
               }
               const next = model.applyOperation(model.parse(document.getText()), message.operation, author);
               await replace(session, next, message.version);
+              sendState();
               try {
-                await context.globalState.update(draftKey, undefined);
+                const draft = context.globalState.get(draftKey)?.draft, op = message.operation;
+                if (draft && ['addThread', 'reply', 'editMessage'].includes(op.type) && draft.type === op.type &&
+                    draft.body === op.body && draft.threadId === op.threadId && draft.messageId === op.messageId &&
+                    (op.type !== 'addThread' || JSON.stringify(draft.anchor) === JSON.stringify(op.anchor))) {
+                  await context.globalState.update(draftKey, undefined);
+                }
                 await context.globalState.update('author', author.trim());
               } catch (error) {
-                vscode.window.showWarningMessage(`コメントはレビューに保存済みですが、ローカルの下書き・表示名設定を更新できませんでした: ${error.message}`);
+                vscode.window.showWarningMessage(`コメントはレビューのタブに反映済みですが、ローカルの下書き・表示名設定を更新できませんでした: ${error.message}`);
               }
             } else if (message.type === 'navigate') await navigate(session, message);
             else return;

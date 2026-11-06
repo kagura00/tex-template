@@ -33,14 +33,22 @@ async function snapshot(pdfFile, root) {
   for (const match of text.matchAll(/^Input:(\d+):([^\r\n]+)$/gm)) {
     const [, tag, input] = match;
     let relative;
+    const candidates = new Set();
     for (const candidate of path.isAbsolute(input) ? [input] : [path.resolve(root, input), path.resolve(path.dirname(pdfFile), input)]) {
       try {
         const file = await fs.realpath(candidate);
         if (!within(realRoot, file)) continue;
-        relative = path.relative(realRoot, file).split(path.sep).join('/');
-        if (!model.safeRelative(relative)) continue;
+        const candidateRelative = path.relative(realRoot, file).split(path.sep).join('/');
+        if (!model.safeRelative(candidateRelative)) continue;
         const stat = await fs.stat(file);
-        if (!stat.isFile() || stat.size > 1024 * 1024) { relative = undefined; continue; }
+        if (!stat.isFile() || stat.size > 1024 * 1024) continue;
+        candidates.add(file);
+      } catch { /* 存在しない候補や外部の原稿は取り込まない。 */ }
+    }
+    if (candidates.size > 1) throw new Error('SyncTeXの相対パスに同名の原稿候補が複数あります。絶対パスを記録する設定でPDFを再生成してください。');
+    for (const file of candidates) {
+      try {
+        relative = path.relative(realRoot, file).split(path.sep).join('/');
         const source = await fs.readFile(file, 'utf8');
         const lines = model.lineHashes(source);
         if (lines.length > 100000) { relative = undefined; continue; }

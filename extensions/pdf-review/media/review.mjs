@@ -9,7 +9,7 @@ const pending = new Map();
 function error(message) { $('error').textContent = message; $('error').hidden = !message; }
 function setBusy(value) {
   ui.busy = value;
-  for (const node of document.querySelectorAll('#comments-panel button, #context-add, #add-comment, #region-mode, #comment-body')) node.disabled = value;
+  for (const node of document.querySelectorAll('#comments-panel button, .comment-marker, #context-add, #add-comment, #region-mode, #comment-body')) node.disabled = value;
 }
 function send(type, payload = {}) {
   if (ui.busy) return Promise.reject(new Error('処理が完了するまでお待ちください。'));
@@ -70,7 +70,7 @@ function confirmDiscard() {
 async function compose(draft) {
   if (ui.busy) return;
   if (ui.draft && $('comment-body').value.trim() && !await confirmDiscard()) return;
-  ui.draft = draft; showPanel();
+  ui.draft = { ...draft, anchor: draft.anchor || ui.review.threads.find(t => t.id === draft.threadId)?.anchor }; showPanel();
   $('composer').hidden = false;
   $('composer-title').textContent = draft.type === 'addThread' ? '新しいコメント' : draft.type === 'reply' ? '返信' : 'コメントを編集';
   $('selection-quote').textContent = draft.anchor?.quote || '';
@@ -258,14 +258,24 @@ window.addEventListener('message', handle(async event => {
     if (!ui.authorEdited) $('author').value = message.author || '';
     $('document-name').textContent = ui.review.pdf.name; document.title = `${ui.review.pdf.name} — PDFレビュー`;
     $('save-status').textContent = message.dirty ? '未保存の変更があります（Ctrl+Sで保存）' : '保存済み · .pdfreviewファイルを渡すとPDFとコメントを共有できます';
+    if (ui.draft && ui.draft.type !== 'addThread' && !ui.review.threads.some(t => t.id === ui.draft.threadId &&
+        (ui.draft.type !== 'editMessage' || t.messages.some(m => m.id === ui.draft.messageId)))) {
+      ui.draft = { type: 'addThread', anchor: ui.draft.anchor };
+      $('composer-title').textContent = '新しいコメント';
+      error('返信・編集先が削除されました。入力内容を新しいコメントとして残しています。');
+      persistDraft();
+    }
     renderThreads();
     if (!ui.restoredDraft && Object.hasOwn(message, 'draftState')) {
       ui.restoredDraft = true;
       const saved = message.draftState;
       if (saved?.reviewId === ui.review.id && saved?.pdfHash === ui.review.pdf.sha256 && saved.draft?.body &&
-          (saved.draft.type === 'addThread' || ui.review.threads.some(t => t.id === saved.draft.threadId))) {
+          (saved.draft.anchor || ui.review.threads.some(t => t.id === saved.draft.threadId))) {
         $('author').value = saved.author || $('author').value;
-        await compose(saved.draft);
+        const targetExists = saved.draft.type === 'addThread' || ui.review.threads.some(t => t.id === saved.draft.threadId &&
+          (saved.draft.type !== 'editMessage' || t.messages.some(m => m.id === saved.draft.messageId)));
+        await compose(targetExists ? saved.draft : { type: 'addThread', anchor: saved.draft.anchor, body: saved.draft.body });
+        if (!targetExists) error('返信・編集先が削除されています。下書きを新しいコメントとして復元しました。');
       }
     }
     await loadPdf(ui.review); drawAll();

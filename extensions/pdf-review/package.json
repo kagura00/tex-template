@@ -2,7 +2,7 @@
   "name": "tex-template-pdf-review",
   "displayName": "TeX PDF Review",
   "description": "PDFにコメント・返信を付け、SyncTeXでTeX原稿へ移動するローカルレビュー拡張。",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "kagura00",
   "license": "0BSD",
   "repository": { "type": "git", "url": "https://github.com/kagura00/tex-template.git", "directory": "extensions/pdf-review" },

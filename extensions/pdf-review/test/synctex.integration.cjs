@@ -34,6 +34,14 @@ const exec = promisify(execFile);
     await fs.writeFile(path.join(outside, 'private.tex'), 'not a project input');
     await fs.symlink(outside, path.join(root, 'outside'));
     await assert.rejects(sync.safeFile(root, 'outside/private.tex'), /ワークスペース外/);
+    // サブディレクトリ内で同名の原稿をビルドしてもルート側へ誤移動しない。
+    await fs.mkdir(path.join(root, 'slides'));
+    await fs.writeFile(path.join(root, 'slides/main.tex'), source.replace('SOURCEANCHORPROBE', 'NESTEDANCHORPROBE'));
+    await exec('lualatex', ['-synctex=1', '-halt-on-error', '-interaction=batchmode', 'main.tex'], { cwd: path.join(root, 'slides'), timeout: 120000 });
+    const nested = await sync.snapshot(path.join(root, 'slides/main.pdf'), root);
+    assert.ok(nested.inputs.some(i => i.path === 'slides/main.tex'));
+    assert.ok(!nested.inputs.some(i => i.path === 'main.tex'));
     console.log('PASS: real LuaLaTeX + captured/sanitized SyncTeX maps the preserved PDF to main.tex:5; source insertion relocates to line 6; original PDF replacement leaves review intact.');
+    console.log('PASS: nested build with same-named sources captures slides/main.tex, not root/main.tex.');
   } finally { await fs.rm(root, { recursive: true, force: true }); await fs.rm(outside, { recursive: true, force: true }); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

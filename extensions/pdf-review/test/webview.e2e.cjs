@@ -28,7 +28,7 @@ const { html } = require('../src/html.cjs');
           assert.equal(message.version, version);
           review = model.applyOperation(review, message.operation, message.author); version++;
           await fs.writeFile(file, JSON.stringify(review));
-          draftState = null;
+          if (['addThread', 'reply', 'editMessage'].includes(message.operation.type)) draftState = null;
           events.push(state(), { type: 'ack', requestId: message.requestId });
         } else if (message.type === 'navigate') {
           navigation.push(message.threadId); events.push({ type: 'ack', requestId: message.requestId });
@@ -154,10 +154,35 @@ const { html } = require('../src/html.cjs');
     assert.ok(panelBox.width <= 620 && panelBox.y >= pdfBox.y + pdfBox.height - 2);
     await page.setViewportSize({ width: 1560, height: 1000 });
     await page.locator('.pdf-page[data-page="2"][data-rendered="true"]').waitFor();
+    // 状態更新中に生成し直したマーカーも、ACK後には再び操作できる。
+    await page.locator('.thread').first().getByRole('button', { name: '返信', exact: true }).click();
+    await page.getByLabel('コメント本文').fill('解決・削除後も残す下書き');
+    await page.waitForFunction(() => !document.getElementById('comment-body').disabled);
+    await page.locator('.thread').last().getByRole('button', { name: '解決', exact: true }).click();
+    await page.waitForFunction(() => !document.getElementById('comment-body').disabled);
+    assert.equal(await page.locator('.comment-marker:disabled').count(), 0);
+    assert.equal(draftState.draft.body, '解決・削除後も残す下書き');
+    await page.reload();
+    await page.getByLabel('コメント本文').waitFor();
+    assert.equal(await page.getByLabel('コメント本文').inputValue(), '解決・削除後も残す下書き');
+    await page.locator('.thread').nth(1).getByRole('button', { name: '削除', exact: true }).click();
+    await page.waitForFunction(() => !document.getElementById('comment-body').disabled);
+    assert.equal(await page.locator('.comment-marker:disabled').count(), 0);
+    assert.equal(draftState.draft.body, '解決・削除後も残す下書き');
+    // 返信先そのものの削除でも、本文を同じ範囲の新規コメントとして回収する。
+    await page.locator('.thread').first().getByRole('button', { name: '削除', exact: true }).last().click();
+    await page.waitForFunction(() => !document.getElementById('comment-body').disabled);
+    await page.locator('.thread').first().getByRole('button', { name: '削除', exact: true }).click();
+    await page.waitForFunction(() => !document.getElementById('comment-body').disabled);
+    assert.equal(await page.getByLabel('コメント本文').inputValue(), '解決・削除後も残す下書き');
+    assert.equal(await page.locator('#composer-title').textContent(), '新しいコメント');
+    await page.reload();
+    await page.getByLabel('コメント本文').waitFor();
+    assert.equal(await page.getByLabel('コメント本文').inputValue(), '解決・削除後も残す下書き');
     assert.deepEqual(browserErrors, []);
     await fs.mkdir(path.join(root, 'dist'), { recursive: true });
     await page.screenshot({ path: path.join(root, 'dist/review-ui.png'), fullPage: true });
-    console.log('PASS: Japanese PDF selection/right-click, literal text, reply/edit, draft reload/discard recovery, zoom geometry, resolution/reopen, reload persistence, region and multi-line page-2 comments, and navigation request.');
+    console.log('PASS: Japanese PDF selection/right-click, literal text, reply/edit, draft reload/discard recovery, zoom geometry, resolution/reopen, reload persistence, region and multi-line page-2 comments, navigation request, enabled markers after resolve/delete, and draft recovery after target deletion.');
   } catch (failure) {
     await fs.mkdir(path.join(root, 'dist'), { recursive: true });
     if (page) {
