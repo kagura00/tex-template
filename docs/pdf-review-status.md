@@ -41,5 +41,12 @@ GitHub Actionsには拡張用ジョブを追加し、`feat/**` のpushでも既�
 
 修正後は単体11件、追加の下書き・マーカー回帰を含む実PDF.jsのPlaywrightテスト、インストール済みVS Code 1.145.1の実Extension Host、実LuaLaTeX／SyncTeX統合テストが成功。`npm audit` は指摘0件、VSIX作成も成功した。既存の22項目・ZIP・権限等の検証も、このレビュー時に独立した一時コンテナで再実行して成功した。
 
+## コンテナ接続時の自動導入
+
+`postAttachCommand` から `.devcontainer/install-pdf-review.cjs` を実行し、リポジトリのソースとlockfileから未公開VSIXを構築してコンテナ側へ導入する。Git履歴やワークスペース内のnode_modules・生成物に依存しない。構築物は利用者のキャッシュに置き、ソースの指紋と実際の拡張一覧が一致すれば再接続時の導入を省略する。初回構築にはネットワークが必要で、失敗は非0終了と再試行手順で通知する。
+
+実VS Code ServerのCLIと隔離した拡張ディレクトリで、GitなしZIP相当からの初回導入、npmを呼ばない再接続、手動アンインストール後のキャッシュからの復旧、同一バージョンのソース更新、CLIの失敗伝播、ワークスペースに構築物を残さないことを確認した。同じ検証をCIにも追加する。
+別の一時コンテナにもGitなしのソースと公式VS Code Serverを配置し、Dev Containers CLI 0.89.0の `run-user-commands` からpostCreate・postStart・postAttachの成功を確認した。postAttachによる初回の構築・導入と、次の呼出しでの構築省略が成功した。既存コンテナは旧ライフサイクル設定を持つため、設定反映にはRebuild Containerを案内する。
+
 初版では新しいPDFへのコメント自動転記、複数レビューのマージ、同時編集、通常のPDF注釈への書出しは対象外。
 利用方法・サイズ上限・対応情報については [拡張のREADME](../extensions/pdf-review/README.md) を参照。

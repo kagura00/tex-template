@@ -30,6 +30,8 @@
   "postCreateCommand": "bash .devcontainer/postCreate.sh",
   // 再接続や再起動でも aux/・out/ の権限を直して保存時ビルドを維持する
   "postStartCommand": "bash .devcontainer/prepareWorkspace.sh",
+  // VS Code Server起動後、未公開のPDFレビュー拡張を構築・導入する。
+  "postAttachCommand": "node .devcontainer/install-pdf-review.cjs",
   "customizations": {
     "vscode": {
       "settings": {

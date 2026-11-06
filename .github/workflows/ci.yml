@@ -49,6 +49,8 @@ jobs:
           npm run test:ui
       - name: Check actual VS Code Extension Host
         run: xvfb-run -a npm run test:vscode
+      - name: Check automatic VSIX installation from ZIP-only sources
+        run: xvfb-run -a node test/install.integration.cjs
 
   validate:
     runs-on: ubuntu-24.04

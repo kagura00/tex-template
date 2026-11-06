@@ -245,6 +245,7 @@ Word などで表紙だけを別に作り、PDF として 1 ページ目へ差�
 - `streetsidesoftware.code-spell-checker`
 - `hediet.vscode-drawio`
 - `usernamehw.errorlens`
+- `kagura00.tex-template-pdf-review`（リポジトリ内のソースから接続時に自動導入）
 
 `Codex` のように個人のログイン情報を扱う拡張は同梱していません。
 必要な場合は利用者ごとにコンテナ内へ追加してください。
@@ -283,7 +284,13 @@ Word などで表紙だけを別に作り、PDF として 1 ページ目へ差�
 
 ## PDFレビュー（任意）
 
-PDF上でコメントを付けて受け渡すための自作拡張 **TeX PDF Review** を [extensions/pdf-review](extensions/pdf-review/README.md) に用意しています。未公開のVSIXとして導入でき、レビュー側はTeX・Dockerなしで利用できます。PDF上の範囲選択・コメント・返信・解決状態の共有と、執筆側のSyncTeXによるTeXへの移動に対応します。任意導入で、既存のLaTeX WorkshopのPDF表示は引き続き利用できます。
+PDF上でコメントを付けて受け渡すための自作拡張 **TeX PDF Review** を [extensions/pdf-review](extensions/pdf-review/README.md) に用意しています。PDF上の範囲選択・コメント・返信・解決状態の共有と、執筆側のSyncTeXによるTeXへの移動に対応します。既存のLaTeX WorkshopのPDF表示も引き続き利用できます。
+
+Dev Containerでは、接続後の `postAttachCommand` が固定依存から未公開VSIXを作成し、コンテナ側へ自動導入します。ZIPから取得した場合も同じです。**初回接続時はネットワークと導入処理の完了待ちが必要**で、その後PDFの右クリックから利用できます。再接続時はソースと導入済みバージョンを確認し、変更がなければ構築・再導入を省略します。生成物はユーザーのキャッシュに置き、原稿フォルダーには作りません。
+
+既存のコンテナへこの設定を反映するには `Dev Containers: Rebuild Container` を実行してください。導入に失敗した場合はログにエラーを表示します。コンテナ内のターミナルで `node .devcontainer/install-pdf-review.cjs` を実行すると再試行できます。利用者が拡張を無効にした設定は自動で有効化しません。
+
+レビューする側がコンテナを使わない場合は、引き続きVSIXを手動導入でき、TeX・Dockerは不要です。
 
 ## スニペット
 
@@ -366,12 +373,14 @@ README では、最初によく使うものだけ挙げます。
 ## オフライン利用
 
 初回のコンテナ作成にはネットワークが必要です。
-この段階では、`texlive/texlive` ベースイメージの取得、`apt-get`、Node.js の取得、`npm` パッケージの取得、VS Code 拡張の初回インストールが発生します。
+この段階では、Debian と `texlive/texlive` の取得、`apt-get`、Node.js の取得、`npm` パッケージの取得、VS Code 拡張の初回インストールが発生します。PDFレビュー拡張の初回構築・更新時もnpmへ接続します。同じソースの導入が完了した既存コンテナへの再接続では、この追加取得は発生しません。
 OS は Debian 13 (trixie) stable、TeX Live は 2026 の検証済みスナップショットです。両方の取得元を digest で固定し、OS の security 更新は構築時に適用します。初回構築用の空き容量は 30 GB 以上を目安にしてください。
 TeX Live のマクロ・フォントは full scheme をもとにしつつ、documentation/source と Java 用 JAR は含めません。
 amd64 と arm64 のネイティブバイナリを選択する構成です。配布前の自動ビルド検証は amd64 で行います。
 Node.js は LTS の特定バージョンと公式 SHA-256、npm 本体は Dockerfile の `NPM_VERSION`、textlint 関連は `package-lock.json` で推移依存まで固定しています。
 初回のインストール作業は時間がかかりますが、次回以降は早くなります。
+
+取得元・digest・ローカル構築との関係は [Dockerイメージの取得元](docs/container-image-sources.md) を参照してください。
 
 一方、初回起動が一度成功した後は、次の作業はオフラインでも実行できます。
 
