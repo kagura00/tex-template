@@ -20,7 +20,12 @@ const exec = promisify(execFile);
     }
     assert.equal(await fs.stat(path.join(root, '.git')).catch(() => null), null);
     assert.equal(await fs.stat(path.join(root, 'node_modules')).catch(() => null), null);
-    const cli = process.env.REVIEW_CODE_CLI || await require('@vscode/test-electron').downloadAndUnzipVSCode('1.143.1');
+    let cli = process.env.REVIEW_CODE_CLI;
+    if (!cli) {
+      const sdk = require('@vscode/test-electron');
+      const executable = await sdk.downloadAndUnzipVSCode('1.143.1');
+      cli = sdk.resolveCliPathFromVSCodeExecutablePath(executable);
+    }
     const cliArgs = ['--user-data-dir', path.join(scratch, 'user-data'), '--no-sandbox'];
     const options = { root, cache, extensionsDir, cli, cliArgs };
     const manifest = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));

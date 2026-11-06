@@ -50,6 +50,7 @@ jobs:
       - name: Check actual VS Code Extension Host
         run: xvfb-run -a npm run test:vscode
       - name: Check automatic VSIX installation from ZIP-only sources
+        timeout-minutes: 5
         run: xvfb-run -a node test/install.integration.cjs
 
   validate:
