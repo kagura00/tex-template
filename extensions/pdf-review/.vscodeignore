@@ -1,0 +1,8 @@
+node_modules/**
+test/**
+scripts/**
+.vscode/**
+dist/**
+package-lock.json
+**/*.map
+media/pdfjs/wasm/*.wasm.map

@@ -16,3 +16,9 @@ out/*.xdv
 
 # SyncTeX は PDF と同じ out/ に置くが、通常は成果物として追跡しない
 out/*.synctex.gz
+
+# 自作拡張の依存・パッケージ・テスト用VS Code
+extensions/pdf-review/node_modules/
+extensions/pdf-review/media/pdfjs/
+extensions/pdf-review/dist/
+extensions/pdf-review/.vscode-test/

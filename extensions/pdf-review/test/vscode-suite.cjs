@@ -1,0 +1,34 @@
+const vscode = require('vscode');
+const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
+const path = require('node:path');
+const model = require('../src/model.cjs');
+
+exports.run = async () => {
+  const extension = vscode.extensions.getExtension('kagura00.tex-template-pdf-review');
+  assert.ok(extension);
+  await extension.activate();
+  const commands = await vscode.commands.getCommands(true);
+  assert.ok(commands.includes('pdfReview.open'));
+  assert.ok(commands.includes('pdfReview.export'));
+  const pdf = await fs.readFile(path.resolve(__dirname, '../../../out/main.pdf'));
+  const review = model.create(pdf, 'actual-sample.pdf');
+  const file = path.join(process.env.REVIEW_VSCODE_FIXTURES, 'sample.pdfreview');
+  await fs.writeFile(file, JSON.stringify(review));
+  const uri = vscode.Uri.file(file);
+  await vscode.commands.executeCommand('vscode.openWith', uri, 'texTemplate.pdfReview');
+  const tab = vscode.window.tabGroups.activeTabGroup.activeTab;
+  assert.equal(tab.input.viewType, 'texTemplate.pdfReview');
+  const document = await vscode.workspace.openTextDocument(uri);
+  const next = model.applyOperation(review, { type: 'addThread', anchor: { page: 1, quote: 'host test', rects: [[10, 10, 20, 20]], point: { x: 15, y: 15 } }, body: 'Extension Host persistence check' }, 'Test');
+  const edit = new vscode.WorkspaceEdit();
+  edit.replace(uri, new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length)), JSON.stringify(next));
+  assert.equal(await vscode.workspace.applyEdit(edit), true);
+  assert.equal(await document.save(), true);
+  assert.equal(model.parse(await fs.readFile(file, 'utf8')).threads[0].messages[0].body, 'Extension Host persistence check');
+  await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  await vscode.commands.executeCommand('vscode.openWith', uri, 'texTemplate.pdfReview');
+  assert.equal(vscode.window.tabGroups.activeTabGroup.activeTab.input.viewType, 'texTemplate.pdfReview');
+  await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  console.log('PASS: installed VS Code Extension Host activation, commands, custom editor registration, document save, close and reopen.');
+};

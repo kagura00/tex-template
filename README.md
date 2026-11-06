@@ -281,6 +281,10 @@ Word などで表紙だけを別に作り、PDF として 1 ページ目へ差�
 - `arara` など Java 系ツールのランチャーが存在しても、Java と JAR を同梱していないため実行できません
 - X11 の外部 DVI ビューア `xdvi-xaw` はサポート対象外です。PDF は VS Code 内蔵ビューアで確認してください
 
+## PDFレビュー（任意）
+
+PDF上でコメントを付けて受け渡すための自作拡張 **TeX PDF Review** を [extensions/pdf-review](extensions/pdf-review/README.md) に用意しています。未公開のVSIXとして導入でき、レビュー側はTeX・Dockerなしで利用できます。PDF上の範囲選択・コメント・返信・解決状態の共有と、執筆側のSyncTeXによるTeXへの移動に対応します。任意導入で、既存のLaTeX WorkshopのPDF表示は引き続き利用できます。
+
 ## スニペット
 
 LaTeX ファイルでプレフィックスを入力し、補完候補を確定するか `Tab` を押すとスニペットを展開できます。
@@ -396,6 +400,7 @@ Node.js は LTS の特定バージョンと公式 SHA-256、npm 本体は Docker
 - `.devcontainer/` 配下を変えた後は `Dev Containers: Rebuild Container` を実行する
 - ターミナルで `textlint main.tex` が通るか確認する
 - `Code.exe ENOENT` のようなエラーが出る場合は、`textlint` 拡張がホスト側で動いている可能性があるため、コンテナ側で開き直す
+- VS Code用volumeを以前の環境から引き継ぎ、`Failed to load the textlint library` が出る場合は、コンテナのRemote設定に残る `textlint.nodePath` を確認する。旧値 `/usr/local/lib/node_modules` の場合は、現在の構成の `/opt/textlint/node_modules` に合わせてウィンドウを再読み込みする
 
 ### `C:\texlive\...` のログが出る
 

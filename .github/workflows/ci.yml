@@ -17,6 +17,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pdf-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: extensions/pdf-review
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.22.2'
+          cache: npm
+          cache-dependency-path: extensions/pdf-review/package-lock.json
+      - name: Install and audit extension dependencies
+        run: |
+          npm ci --ignore-scripts
+          npm audit
+      - name: Check review persistence and source anchors
+        run: npm test
+      - name: Package unpublished VSIX
+        run: npm run package
+      - name: Check PDF review interactions
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:ui
+      - name: Check actual VS Code Extension Host
+        run: xvfb-run -a npm run test:vscode
+
   validate:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -86,4 +118,5 @@ jobs:
               test -s out/main.pdf
               ! grep -Eq "duplicate destination|undefined references|Citation .* undefined|Reference .* undefined" aux/main.log
               bash .devcontainer/test-security.sh
-              node .devcontainer/test-features.cjs'
+              node .devcontainer/test-features.cjs
+              node extensions/pdf-review/test/synctex.integration.cjs'

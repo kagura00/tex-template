@@ -1,0 +1,45 @@
+{
+  "name": "tex-template-pdf-review",
+  "displayName": "TeX PDF Review",
+  "description": "PDFにコメント・返信を付け、SyncTeXでTeX原稿へ移動するローカルレビュー拡張。",
+  "version": "0.1.1",
+  "publisher": "kagura00",
+  "license": "0BSD",
+  "repository": { "type": "git", "url": "https://github.com/kagura00/tex-template.git", "directory": "extensions/pdf-review" },
+  "engines": { "vscode": "^1.143.0", "node": ">=22.13.0" },
+  "categories": ["Other"],
+  "extensionKind": ["workspace"],
+  "main": "./src/extension.cjs",
+  "activationEvents": ["onCustomEditor:texTemplate.pdfReview"],
+  "capabilities": { "untrustedWorkspaces": { "supported": false } },
+  "contributes": {
+    "commands": [
+      { "command": "pdfReview.open", "title": "PDFレビュー: PDF／レビューを開く" },
+      { "command": "pdfReview.export", "title": "PDFレビュー: レビューを別名で保存" }
+    ],
+    "customEditors": [{ "viewType": "texTemplate.pdfReview", "displayName": "PDFレビュー", "selector": [{ "filenamePattern": "*.pdfreview" }], "priority": "default" }],
+    "menus": {
+      "explorer/context": [{ "command": "pdfReview.open", "when": "resourceExtname == .pdf || resourceExtname == .pdfreview", "group": "navigation@10" }],
+      "editor/title": [{ "command": "pdfReview.export", "when": "activeCustomEditorId == texTemplate.pdfReview", "group": "navigation" }]
+    },
+    "configuration": {
+      "title": "PDFレビュー",
+      "properties": {
+        "pdfReview.author": { "type": "string", "default": "", "description": "コメントに記録する表示名。空欄ならOSのユーザー名。認証された本人確認情報ではありません。" },
+        "pdfReview.synctexPath": { "type": "string", "default": "synctex", "description": "SyncTeX実行ファイル。TeXへの移動はワークスペースが信頼されているときだけ実行します。" }
+      }
+    }
+  },
+  "scripts": {
+    "build": "node scripts/prepare.cjs",
+    "test": "node --test test/*.test.cjs",
+    "test:ui": "node test/webview.e2e.cjs",
+    "test:vscode": "node scripts/test-vscode.cjs",
+    "test:synctex": "node test/synctex.integration.cjs",
+    "vscode:prepublish": "npm run build",
+    "package": "vsce package --no-dependencies --out dist/tex-template-pdf-review.vsix"
+  },
+  "dependencies": { "pdfjs-dist": "6.5.438" },
+  "devDependencies": { "@vscode/vsce": "4.1.0", "@vscode/test-electron": "3.1.0", "playwright": "1.65.0" },
+  "overrides": { "minimatch": "11.0.5" }
+}
