@@ -1,5 +1,5 @@
 # TeX Live 2026 の検証済みスナップショット。OS は Debian stable で別管理する。
-FROM texlive/texlive:latest@sha256:07e8062637249c4f780ca59f42cc2ed592bc2dc1db4320769406aee3f98aa70e AS texlive-source
+FROM texlive/texlive:latest@sha256:c21636aa13e86716d15dab4e352356cb0d34f9365d6091db066e5df71041d67b AS texlive-source
 # Java 補助ツールは対象外。古い bundled ライブラリを最終イメージへ持ち込まない。
 RUN find /usr/local/texlive/2026 -type f -name '*.jar' -delete
 
